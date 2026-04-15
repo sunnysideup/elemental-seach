@@ -1,5 +1,5 @@
 {
-    "name": "silverstripers/elemental-search",
+    "name": "sunnysideup/elemental-search",
     "description": "Full text search for elemental module",
     "type": "silverstripe-vendormodule",
     "keywords": ["silverstripe", "elemental", "full text", "search"],
