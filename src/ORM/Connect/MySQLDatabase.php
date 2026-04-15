@@ -9,14 +9,14 @@
 
 namespace SilverStripers\ElementalSearch\ORM\Connect;
 
+use SilverStripe\Model\List\PaginatedList;
+use SilverStripe\Model\List\ArrayList;
 use Override;
 use Exception;
 use SilverStripe\Assets\File;
 use SilverStripe\Core\Convert;
-use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\PaginatedList;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Connect\MySQLDatabase as SS_MySQLDatabase;
 use SilverStripers\ElementalSearch\Model\SearchDocument;
