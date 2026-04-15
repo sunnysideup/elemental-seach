@@ -9,8 +9,7 @@
 
 namespace SilverStripers\ElementalSearch\Extensions;
 
-use DNADesign\Elemental\Models\BaseElement;
-use SilverStripe\Core\Config\Config;
+use Override;
 use SilverStripers\ElementalSearch\Model\SearchDocument;
 
 class ElementDocumentGeneratorExtension extends SearchDocumentGenerator
@@ -19,26 +18,30 @@ class ElementDocumentGeneratorExtension extends SearchDocumentGenerator
     public function getGenerateSearchLink()
     {
         /* @var $element BaseElement */
-        $element = $this->owner;
+        $element = $this->getOwner();
         $page = $element->getPage();
         return $page ? $page->Link() : null;
     }
 
+    #[Override]
     public function onAfterWrite()
     {
         return null;
     }
 
+    #[Override]
     public function onAfterDelete()
     {
         return null;
     }
 
+    #[Override]
     public function onAfterPublish()
     {
         if ($this->isThisAStandAloneClass()) {
-            self::make_document_for($this->owner);
+            self::make_document_for($this->getOwner());
         }
+
         if (!SearchDocumentGenerator::search_documents_prevented()) {
             $this->makeSearchDocumentForPage();
         }
@@ -49,11 +52,13 @@ class ElementDocumentGeneratorExtension extends SearchDocumentGenerator
         return null;
     }
 
+    #[Override]
     public function onAfterArchive()
     {
         if ($this->isThisAStandAloneClass()) {
-            self::delete_doc($this->owner);
+            self::delete_doc($this->getOwner());
         }
+
         if (!SearchDocumentGenerator::search_documents_prevented()) {
             $this->makeSearchDocumentForPage();
         }
@@ -62,7 +67,7 @@ class ElementDocumentGeneratorExtension extends SearchDocumentGenerator
     public function makeSearchDocumentForPage()
     {
         /* @var $element BaseElement */
-        $element = $this->owner;
+        $element = $this->getOwner();
         $page = $element->getPage();
         if($page) {
             self::make_document_for($page);
@@ -71,10 +76,7 @@ class ElementDocumentGeneratorExtension extends SearchDocumentGenerator
 
     private function isThisAStandAloneClass()
     {
-        if (($classes = $this->getStandAloneElementClasses()) && in_array(get_class($this->owner), $classes)) {
-            return true;
-        }
-        return false;
+        return ($classes = $this->getStandAloneElementClasses()) && in_array($this->getOwner()::class, $classes);
     }
 
     public function getStandAloneElementClasses()

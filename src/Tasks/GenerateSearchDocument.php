@@ -17,14 +17,13 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
-use SilverStripers\ElementalSearch\Extensions\ElementDocumentGeneratorExtension;
 use SilverStripers\ElementalSearch\Extensions\SearchDocumentGenerator;
 use SilverStripers\ElementalSearch\Extensions\SiteTreeDocumentGenerator;
 
 class GenerateSearchDocument extends BuildTask
 {
 
-    protected $title = 'Re-generate all search documents';
+    protected string $title = 'Re-generate all search documents';
 
     protected $description = 'Generate search documents for items.';
 
@@ -55,10 +54,11 @@ class GenerateSearchDocument extends BuildTask
                 echo $output;
 				try {
 					SearchDocumentGenerator::make_document_for($record);
-				} catch (Exception $e) {
+				} catch (Exception) {
 				}
             }
         }
+
         echo 'Completed';
     }
 
@@ -76,6 +76,7 @@ class GenerateSearchDocument extends BuildTask
                 }
             }
         }
+
         return $list;
     }
 

@@ -10,6 +10,9 @@
 
 namespace SilverStripers\ElementalSearch\Model;
 
+use Exception;
+use DOMDocument;
+use DOMXPath;
 use DNADesign\Elemental\Models\ElementalArea;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Director;
@@ -51,7 +54,7 @@ class SearchDocument extends DataObject
     {
         $origin = $this->Origin();
         if (!$origin) {
-            return;
+            return null;
         }
 
         $output = [];
@@ -60,7 +63,7 @@ class SearchDocument extends DataObject
             $oldThemes = SSViewer::get_themes();
             SSViewer::set_themes(SSViewer::config()->get('themes'));
 
-            $isSiteTree = is_a($origin, SiteTree::class);
+            $isSiteTree = $origin instanceof SiteTree;
             $hasSearchLink = method_exists($origin, 'getGenerateSearchLink');
             $contents = '';
 
@@ -87,6 +90,7 @@ class SearchDocument extends DataObject
                         if ($class !== ElementalArea::class) {
                             continue;
                         }
+
                         /** @var ElementalArea $area */
                         $area = $origin->$key();
                         if ($area && $area->exists()) {
@@ -111,6 +115,7 @@ class SearchDocument extends DataObject
                         SSViewer::set_themes($oldThemes);
                     }
                 }
+
                 // any fields mark to search
                 if ($origin->config()->get('full_text_fields')) {
                     foreach ($origin->config()->get('full_text_fields') as $fieldName) {
@@ -140,26 +145,29 @@ class SearchDocument extends DataObject
                 }
 
             } else {
-                $contents = strip_tags($origin->forTemplate());
+                $contents = strip_tags((string) $origin->forTemplate());
             }
 
             $this->Title = $origin->getTitle();
             if ($this->Origin()->hasMethod('updateSearchContents')) {
                 $this->Origin()->updateSearchContents($contents);
             }
-            if ($contents) {
+
+            if ($contents !== '' && $contents !== '0') {
                 $contents = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $contents);
                 $this->Content = $contents;
             }
+
             $this->write();
-        } catch (\Exception $e) {
+        } catch (Exception) {
         } finally {
             // Reset theme if an exception occurs, if you don't have a
             // try / finally around code that might throw an Exception,
             // CMS layout can break on the response. (SilverStripe 4.1.1)
             SSViewer::set_themes($oldThemes);
         }
-        return implode($output);
+
+        return implode('', $output);
     }
 
     /**
@@ -171,27 +179,29 @@ class SearchDocument extends DataObject
     {
         $contents = '';
         if ($html) {
-            $domDoc = new \DOMDocument();
+            $domDoc = new DOMDocument();
             @$domDoc->loadHTML($html);
 
-            $finder = new \DOMXPath($domDoc);
-            $nodes = $finder->query("//*[contains(@class, '$xPath')]");
+            $finder = new DOMXPath($domDoc);
+            $nodes = $finder->query(sprintf("//*[contains(@class, '%s')]", $xPath));
             $nodeValues = [];
             if ($nodes->length) {
                 foreach ($nodes as $node) {
                     $nodeValues[] = $node->nodeValue;
                 }
             } else {
-                $contents = strip_tags($html);
+                $contents = strip_tags((string) $html);
             }
+
             $contents = implode("\n\n", $nodeValues);
         }
+
         return $contents;
     }
 
-    function removeEmptyLines($string)
+    public function removeEmptyLines($string)
     {
-        return preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $string);
+        return preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", (string) $string);
     }
 
 }
